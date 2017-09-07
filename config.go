@@ -5,15 +5,15 @@ import "flag"
 type Config struct {
 	Manifest string
 	Input    *string
-	Section  *int
-	Row      *int
+	Section  *string
+	Row      *string
 }
 
 func NewConfig() *Config {
 	manifest := flag.String("manifest", "", "path to manifest file")
 	input := flag.String("input", "", "path to input file")
-	section := flag.Int("section", -1, "section input (for testing)")
-	row := flag.Int("row", -1, "row input (for testing)")
+	section := flag.String("section", "", "section input (for testing)")
+	row := flag.String("row", "", "row input (for testing)")
 
 	flag.Parse()
 
@@ -25,13 +25,11 @@ func NewConfig() *Config {
 		config.Input = input
 	}
 
-	if *section != -1 {
+	if *section != "" {
 		config.Section = section
 	}
 
-	if *row != -1 {
-		config.Row = row
-	}
+	config.Row = row
 
 	return config
 }
