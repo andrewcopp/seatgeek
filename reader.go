@@ -1,4 +1,4 @@
-package record
+package seatgeek
 
 import (
 	"bytes"

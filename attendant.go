@@ -1,7 +1,6 @@
 package seatgeek
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 )
@@ -23,8 +22,6 @@ func NewAttendant(manifest *Manifest) *Attendant {
 }
 
 func (a *Attendant) Check(tkt *Ticket) *Output {
-
-	fmt.Println(a.Manifest)
 
 	perms := a.Shorten(tkt.Clean())
 	for _, perm := range perms {

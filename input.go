@@ -2,8 +2,6 @@ package seatgeek
 
 import (
 	"strconv"
-
-	"github.com/andrewcopp/seatgeek/record"
 )
 
 type Input struct {
@@ -17,7 +15,7 @@ func NewInput() *Input {
 }
 
 func (i *Input) Load(path string) error {
-	records := record.Read(path)
+	records := Read(path)
 
 	samples := make([]*Sample, len(records)-1)
 	for idx, record := range records[1:] {

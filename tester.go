@@ -173,20 +173,6 @@ func (t *Ticket) Exchange(words []string) []string {
 	return results
 }
 
-type Output struct {
-	Section *int
-	Row     *int
-	Valid   bool
-}
-
-func NewOutput(sec, row *int, valid bool) *Output {
-	return &Output{
-		Section: sec,
-		Row:     row,
-		Valid:   valid,
-	}
-}
-
 type Test struct {
 	Ticket *Ticket
 	Output *Output

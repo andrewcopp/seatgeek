@@ -2,10 +2,10 @@ package seatgeek
 
 type Match struct {
 	*Sample
-	Output *Output2 `json:"output"`
+	Output *Output `json:"output"`
 }
 
-func NewMatch(smp *Sample, out *Output2) *Match {
+func NewMatch(smp *Sample, out *Output) *Match {
 	return &Match{
 		Sample: smp,
 		Output: out,
@@ -38,12 +38,12 @@ func NewResult(sec *int, row *int, val bool) *Result {
 	}
 }
 
-type Output2 struct {
+type Output struct {
 	*Result
 }
 
-func NewOutput2(sec *int, row *int, val bool) *Output2 {
-	return &Output2{
+func NewOutput(sec *int, row *int, val bool) *Output {
+	return &Output{
 		Result: NewResult(sec, row, val),
 	}
 }
