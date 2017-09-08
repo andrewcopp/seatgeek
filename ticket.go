@@ -135,8 +135,6 @@ func (t *Ticket) Eliminate(words []string) []string {
 			results = append(results, word)
 		case "Box":
 			results = append(results, word)
-		case "Field Box":
-			results = append(results, word)
 		case "Top":
 			results = append(results, word)
 		case "Deck":
