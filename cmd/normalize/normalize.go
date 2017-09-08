@@ -9,35 +9,6 @@ import (
 	"github.com/andrewcopp/seatgeek"
 )
 
-type Match struct {
-	Expected match `json:"expected"`
-	Output   match `json:"output"`
-}
-
-type match struct {
-	Section string `json:"section_id"`
-	Row     string `json:"row_id"`
-	Valid   bool   `json:"valid"`
-}
-
-func NewMatch(sec, row *int, valid bool) match {
-	s := ""
-	if sec != nil {
-		s = strconv.Itoa(*sec)
-	}
-
-	r := ""
-	if row != nil {
-		r = strconv.Itoa(*row)
-	}
-
-	return match{
-		Section: s,
-		Row:     r,
-		Valid:   valid,
-	}
-}
-
 func main() {
 
 	config := seatgeek.NewConfig()
@@ -45,9 +16,8 @@ func main() {
 	m := seatgeek.NewManifest()
 	m.Load(config.Manifest)
 
-	stdm := seatgeek.NewStadium(m)
 	var checker seatgeek.Checker
-	checker = seatgeek.NewAttendant(stdm)
+	checker = seatgeek.NewAttendant(m)
 	norm := seatgeek.NewDefault(&checker)
 
 	if config.Input != nil {
@@ -57,32 +27,11 @@ func main() {
 			log.Fatalln(err.Error())
 		}
 
-		dist := seatgeek.NewDistributor(in)
+		for _, sample := range in.Samples {
+			section, row, valid := norm.Normalize(sample.Input.Section, &sample.Input.Row)
+			out := seatgeek.NewOutput2(section, row, valid)
+			match := seatgeek.NewMatch(sample, out)
 
-		matches := make([]map[string]map[string]interface{}, len(dist.Tests))
-		for idx, test := range dist.Tests {
-			section, row, valid := norm.Normalize(test.Ticket.Section, test.Ticket.Row)
-			out := test.Output
-
-			matches[idx] = map[string]map[string]interface{}{
-				"input": map[string]interface{}{
-					"section": test.Ticket.Section,
-					"row":     test.Ticket.Row,
-				},
-				"expected": map[string]interface{}{
-					"section_id": out.Section,
-					"row_id":     out.Row,
-					"valid":      out.Valid,
-				},
-				"output": map[string]interface{}{
-					"section_id": section,
-					"row_id":     row,
-					"valid":      valid,
-				},
-			}
-		}
-
-		for _, match := range matches {
 			result, err := json.Marshal(match)
 			if err != nil {
 				log.Fatalln(err.Error())
@@ -107,3 +56,7 @@ func main() {
 		fmt.Printf("Input:\n\t[section] %s\t[row] %s\nOutput:\n\t[section_id] %s\t[row_id] %s\nValid?:\n\t%t\n", *config.Section, *config.Row, out1, out2, valid)
 	}
 }
+
+// Read
+// Normalize
+// Output

@@ -1,69 +1,56 @@
 package seatgeek
 
 import (
-	"bytes"
-	"encoding/csv"
-	"fmt"
-	"io"
-	"io/ioutil"
-	"log"
 	"strconv"
 
 	"github.com/andrewcopp/seatgeek/record"
 )
 
 type Input struct {
-	Records []*record.Input
+	Samples []*Sample
 }
 
 func NewInput() *Input {
 	return &Input{
-		Records: []*record.Input{},
+		Samples: []*Sample{},
 	}
 }
 
 func (i *Input) Load(path string) error {
-	// "~/Developer/sectionnorm/samples/metstest.csv"
-	data, err := ioutil.ReadFile(path)
-	if err != nil {
-		log.Fatalln(err.Error())
-	}
+	records := record.Read(path)
 
-	var reader io.Reader
-	reader = bytes.NewReader(data)
-	reader2 := csv.NewReader(reader)
-	recs, err := reader2.ReadAll()
-
-	records := make([]*record.Input, len(recs)-1)
-	for idx, rec := range recs[1:] {
-		valid, err := strconv.ParseBool(rec[4])
+	samples := make([]*Sample, len(records)-1)
+	for idx, record := range records[1:] {
+		valid, err := strconv.ParseBool(record[4])
 		if err != nil {
 			return err
 		}
 
-		if rec[2] != "" {
-			section, err := strconv.Atoi(rec[2])
+		var sec *int
+		var row *int
+
+		if record[2] != "" {
+			s, err := strconv.Atoi(record[2])
 			if err != nil {
-				fmt.Println(rec)
 				return err
 			}
-
-			if rec[3] != "" {
-				row, err := strconv.Atoi(rec[3])
-				if err != nil {
-					return err
-				}
-				records[idx] = record.NewInput(record.NewPair(&section, rec[0]), record.NewPair(&row, rec[1]), valid)
-			} else {
-				records[idx] = record.NewInput(record.NewPair(&section, rec[0]), record.NewPair(nil, rec[1]), valid)
-			}
-		} else {
-			records[idx] = record.NewInput(record.NewPair(nil, rec[0]), record.NewPair(nil, rec[1]), valid)
+			sec = &s
 		}
 
+		if record[3] != "" {
+			r, err := strconv.Atoi(record[3])
+			if err != nil {
+				return err
+			}
+			row = &r
+		}
+
+		in := NewInput2(record[0], record[1])
+		exp := NewExpected(sec, row, valid)
+		samples[idx] = NewSample(in, exp)
 	}
 
-	i.Records = records
+	i.Samples = samples
 
 	return nil
 }

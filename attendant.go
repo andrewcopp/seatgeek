@@ -1,6 +1,7 @@
 package seatgeek
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 )
@@ -10,30 +11,33 @@ type Checker interface {
 }
 
 type Attendant struct {
-	Stadium *Stadium
-	re      *regexp.Regexp
+	Manifest *Manifest
+	re       *regexp.Regexp
 }
 
-func NewAttendant(stadium *Stadium) *Attendant {
+func NewAttendant(manifest *Manifest) *Attendant {
 	return &Attendant{
-		Stadium: stadium,
-		re:      regexp.MustCompile("[^0-9]"),
+		Manifest: manifest,
+		re:       regexp.MustCompile("[^0-9]"),
 	}
 }
 
 func (a *Attendant) Check(tkt *Ticket) *Output {
 
+	fmt.Println(a.Manifest)
+
 	perms := a.Shorten(tkt.Clean())
 	for _, perm := range perms {
-		if sec, ok := a.Stadium.Sections[perm]; ok {
+		if sec, ok := a.Manifest.Sections[perm]; ok {
 			return a.Lock(tkt, sec)
 		}
 	}
 
 	// Only Possibility
 	sections := map[string][]*Section{}
-	for _, section := range a.Stadium.Sections {
+	for _, section := range a.Manifest.Sections {
 		number := a.re.ReplaceAllString(section.Value, "")
+
 		if number != "" {
 			if _, ok := sections[number]; !ok {
 				sections[number] = []*Section{}
