@@ -2,6 +2,8 @@ package seatgeek
 
 import "testing"
 
+// TestNormalize tests the Normalize function and makes sure some of the more
+// common test cases are handled.
 func TestNormalize(t *testing.T) {
 	cases := []struct {
 		in  *Ticket

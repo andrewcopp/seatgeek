@@ -22,7 +22,12 @@ It's now clear to me that I should have started by examining my data and writing
 test cases such that I could have jumped write to my final approach. It would
 have saved me a lot of time spinning my wheels on a reusable architecture.
 
+Regardless, I have taken the liberty of writing some test cases around the
+majority of logic for ticket normalization. Further testing would require me to
+use more dependency injection and interfaces to be able to mock out CSV files
+or at least the data they produce.
+
 A large portion of my time went into exploring the build script so I could
 recreate the environment in Go. Assuming you have go installed on your machine,
-you should be able to run the autograder as normal just by specificying `go` as
+you should be able to run the autograder as normal just by specifying `go` as
 the language.
