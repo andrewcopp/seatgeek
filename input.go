@@ -4,16 +4,21 @@ import (
 	"strconv"
 )
 
+// Input represents all of the conents of an Input file specified through
+// command line flags. These contents are stored in Sample structs.
 type Input struct {
 	Samples []*Sample
 }
 
+// NewInput returns an empty Input struct.
 func NewInput() *Input {
 	return &Input{
 		Samples: []*Sample{},
 	}
 }
 
+// Load takes a filepath to a CSV and parses the contents in the Input struct.
+// A returned error means that the CSV file was not in the correct format.
 func (i *Input) Load(path string) error {
 	records := Read(path)
 

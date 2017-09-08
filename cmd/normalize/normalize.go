@@ -9,14 +9,9 @@ import (
 	"github.com/andrewcopp/seatgeek"
 )
 
-var man *seatgeek.Manifest
-var matches []*seatgeek.Match
-
 func main() {
-
 	config := seatgeek.NewConfig()
-
-	man = seatgeek.NewManifest()
+	man := seatgeek.NewManifest()
 	man.Load(config.Manifest)
 
 	if config.Input != nil {
@@ -40,6 +35,8 @@ func main() {
 	}
 }
 
+// Read takes a filepath to an input CSV and translates the data into Sample
+// objects.
 func Read(path string) []*seatgeek.Sample {
 	in := seatgeek.NewInput()
 	err := in.Load(path)
@@ -50,8 +47,11 @@ func Read(path string) []*seatgeek.Sample {
 	return in.Samples
 }
 
+// Normalize takes an object that can normalize an Input and a slice of Samples
+// and maps it to the correct ticket in an Output struct. The Output is combined
+// with the Sample to create a slice of Match objects to return.
 func Normalize(norm seatgeek.Normalizer, smps []*seatgeek.Sample, verb bool) []*seatgeek.Match {
-	matches = make([]*seatgeek.Match, len(smps))
+	matches := make([]*seatgeek.Match, len(smps))
 	for idx, sample := range smps {
 		section, row, valid := norm.Normalize(sample.Input.Section, &sample.Input.Row)
 		out := seatgeek.NewOutput(section, row, valid)
@@ -60,6 +60,8 @@ func Normalize(norm seatgeek.Normalizer, smps []*seatgeek.Sample, verb bool) []*
 	return matches
 }
 
+// Output prints the calculated Match objects in JSON format to the console for
+// grading.
 func Output(mtcs []*seatgeek.Match) {
 	for _, mtc := range mtcs {
 		result, err := json.Marshal(mtc)

@@ -7,6 +7,7 @@ import (
 	"log"
 )
 
+// Read takes a filepath to a CSV and returns a slice of records.
 func Read(path string) [][]string {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {

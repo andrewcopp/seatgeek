@@ -5,11 +5,15 @@ import (
 	"strings"
 )
 
+// Ticket represents the object is attempted to be passed off for a real ticket.
+// This item should be called "Input" but it collides with the naming for the
+// object that encapulates the content of input CSV.
 type Ticket struct {
 	Section string `json:"section"`
 	Row     string `json:"row"`
 }
 
+// NewTicket returns a Ticket object that represents a section and row.
 func NewTicket(sec string, row string) *Ticket {
 	return &Ticket{
 		Section: sec,
@@ -17,6 +21,8 @@ func NewTicket(sec string, row string) *Ticket {
 	}
 }
 
+// Normalize processes the given name for a section and row and returns the best
+// guess at what the ticket should actually be to map to a real ticket.
 func (t *Ticket) Normalize() (string, string) {
 
 	words := t.Words()
@@ -30,6 +36,9 @@ func (t *Ticket) Normalize() (string, string) {
 	return t.Complete(section), t.capitalize(t.Row)
 }
 
+// Words returns all of the components of the section that resemble words.
+// Abbrieviations that are connected to a number are split out as their own
+// word.
 func (t *Ticket) Words() []string {
 	re := regexp.MustCompile("[^a-zA-Z ]")
 	phrase := re.ReplaceAllString(t.Section, " ")
@@ -44,11 +53,14 @@ func (t *Ticket) Words() []string {
 	return words
 }
 
+// Number extracts the number from the section name.
 func (t *Ticket) Number() string {
 	re := regexp.MustCompile("[^0-9]")
 	return re.ReplaceAllString(t.Section, "")
 }
 
+// Expand takes any abbrievations in a slice of strings and maps them to a list
+// of known results to be replaced.
 func (t *Ticket) Expand(words []string) []string {
 	results := []string{}
 	for _, word := range words {
@@ -82,6 +94,9 @@ func (t *Ticket) Expand(words []string) []string {
 	return results
 }
 
+// Capitalize takes a slice of strings and returns a slice of the same strings
+// properly capitalized. The first character in each word is uppercase and all
+// other characters are lowercase.
 func (t *Ticket) Capitalize(words []string) []string {
 	for idx, word := range words {
 		words[idx] = t.capitalize(word)
@@ -96,6 +111,8 @@ func (t *Ticket) capitalize(word string) string {
 	return strings.ToUpper(first) + lower[1:]
 }
 
+// Exchange maps words to a list of words that are known to be common
+// substitutes for other words.
 func (t *Ticket) Exchange(words []string) []string {
 	for idx, word := range words {
 		switch word {
@@ -106,6 +123,8 @@ func (t *Ticket) Exchange(words []string) []string {
 	return words
 }
 
+// Eliminate deletes all words that aren't known to be on the manifest in some
+// form or another.
 func (t *Ticket) Eliminate(words []string) []string {
 	results := []string{}
 	for _, word := range words {
@@ -142,6 +161,8 @@ func (t *Ticket) Eliminate(words []string) []string {
 	return results
 }
 
+// Complete takes known words and adds more words to reach a complete phrase
+// if necessary.
 func (t *Ticket) Complete(phrase string) string {
 	if strings.Contains(phrase, "Loge") && !strings.Contains(phrase, "Loge Box") {
 		phrase = strings.Replace(phrase, "Loge", "Loge Box", 1)
