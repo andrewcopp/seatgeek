@@ -43,7 +43,7 @@ func (i *Input) Load(path string) error {
 			row = &r
 		}
 
-		in := NewInput2(record[0], record[1])
+		in := NewTicket(record[0], record[1])
 		exp := NewExpected(sec, row, valid)
 		samples[idx] = NewSample(in, exp)
 	}

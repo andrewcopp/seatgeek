@@ -69,24 +69,19 @@ func (m *Manifest) Load(path string) error {
 
 func (m *Manifest) Normalize(section string, row *string) (*int, *int, bool) {
 
-	words := Words(section)
-	num := Number(section)
+	r := ""
+	if row != nil {
+		r = *row
+	}
 
-	words = Expand(words)
-	words = Capitalize(words)
+	tkt := NewTicket(section, r)
 
-	words = Exchange(words)
-	words = Eliminate(words)
+	section, r = tkt.Normalize()
 
-	result := strings.Join(append(words, num), " ")
-
-	result = Complete(result)
-
-	perms := Shorten(result)
+	perms := Shorten(section)
 	for _, perm := range perms {
 		if sec, ok := m.Sections[perm]; ok {
-			row := capitalize(*row)
-			result := Lock(sec, &row)
+			result := Lock(sec, &r)
 			return result.Section, result.Row, result.Valid
 		}
 	}
@@ -117,118 +112,6 @@ func (m *Manifest) Normalize(section string, row *string) (*int, *int, bool) {
 	// No Match
 	return nil, nil, false
 
-}
-
-func Words(phrase string) []string {
-	re := regexp.MustCompile("[^a-zA-Z ]")
-	phrase = re.ReplaceAllString(phrase, " ")
-
-	words := strings.Split(phrase, " ")
-	for i := len(words) - 1; i >= 0; i-- {
-		if words[i] == "" {
-			words = append(words[:i], words[i+1:]...)
-		}
-	}
-
-	return words
-}
-
-func Number(phrase string) string {
-	re := regexp.MustCompile("[^0-9]")
-	return re.ReplaceAllString(phrase, "")
-}
-
-func Expand(words []string) []string {
-	results := []string{}
-	for _, word := range words {
-		switch word {
-		case "BL":
-			results = append(results, "Baseline")
-			results = append(results, "Club")
-		case "FD":
-			results = append(results, "Field")
-			results = append(results, "Box")
-		case "TD":
-			results = append(results, "Top")
-			results = append(results, "Deck")
-		case "RS":
-			results = append(results, "Reserve")
-		case "LG":
-			results = append(results, "Loge")
-			results = append(results, "Box")
-		case "DG":
-			results = append(results, "Dugout")
-			results = append(results, "Club")
-		case "PR":
-			results = append(results, "Right")
-			results = append(results, "Field")
-			results = append(results, "Pavilion")
-		default:
-			results = append(results, word)
-		}
-	}
-
-	return results
-}
-
-func Capitalize(words []string) []string {
-	for idx, word := range words {
-		words[idx] = capitalize(word)
-	}
-
-	return words
-}
-
-func capitalize(word string) string {
-	lower := strings.ToLower(word)
-	first := strings.SplitN(lower, "", 2)[0]
-	return strings.ToUpper(first) + lower[1:]
-}
-
-func Exchange(words []string) []string {
-	for idx, word := range words {
-		switch word {
-		case "Infield":
-			words[idx] = "Field"
-		}
-	}
-	return words
-}
-
-func Eliminate(words []string) []string {
-	results := []string{}
-	for _, word := range words {
-		switch word {
-		case "Reserve":
-			results = append(results, word)
-		case "Field":
-			results = append(results, word)
-		case "Box":
-			results = append(results, word)
-		case "Field Box":
-			results = append(results, word)
-		case "Top":
-			results = append(results, word)
-		case "Deck":
-			results = append(results, word)
-		case "Loge":
-			results = append(results, word)
-		case "Right":
-			results = append(results, word)
-		case "Left":
-			results = append(results, word)
-		case "Pavilion":
-			results = append(results, word)
-		case "Dugout":
-			results = append(results, word)
-		case "Club":
-			results = append(results, word)
-		case "Baseline":
-			results = append(results, word)
-		}
-	}
-
-	return results
 }
 
 func Lock(sec *Section, row *string) *Output {
@@ -265,16 +148,4 @@ func Shorten(phrase string) []string {
 
 	results = append(results, strings.Join(words, " "))
 	return results
-}
-
-func Complete(phrase string) string {
-	if strings.Contains(phrase, "Loge") && !strings.Contains(phrase, "Loge Box") {
-		phrase = strings.Replace(phrase, "Loge", "Loge Box", 1)
-	}
-
-	if strings.Contains(phrase, "Field") && !strings.Contains(phrase, "Field Box") {
-		phrase = strings.Replace(phrase, "Field", "Field Box", 1)
-	}
-
-	return phrase
 }
