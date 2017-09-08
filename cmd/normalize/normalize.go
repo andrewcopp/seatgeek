@@ -16,10 +16,6 @@ func main() {
 	m := seatgeek.NewManifest()
 	m.Load(config.Manifest)
 
-	var checker seatgeek.Checker
-	checker = seatgeek.NewAttendant(m)
-	norm := seatgeek.NewDefault(&checker)
-
 	if config.Input != nil {
 		in := seatgeek.NewInput()
 		err := in.Load(*config.Input)
@@ -28,8 +24,8 @@ func main() {
 		}
 
 		for _, sample := range in.Samples {
-			section, row, valid := norm.Normalize(sample.Input.Section, &sample.Input.Row)
-			out := seatgeek.NewOutput2(section, row, valid)
+			section, row, valid := m.Normalize(sample.Input.Section, &sample.Input.Row)
+			out := seatgeek.NewOutput(section, row, valid)
 			match := seatgeek.NewMatch(sample, out)
 
 			result, err := json.Marshal(match)
@@ -41,7 +37,7 @@ func main() {
 		}
 
 	} else if config.Section != nil && config.Row != nil {
-		section, row, valid := norm.Normalize(*config.Section, config.Row)
+		section, row, valid := m.Normalize(*config.Section, config.Row)
 
 		out1 := ""
 		if section != nil {

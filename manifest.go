@@ -69,54 +69,24 @@ func (m *Manifest) Load(path string) error {
 
 func (m *Manifest) Normalize(section string, row *string) (*int, *int, bool) {
 
-	segs := strings.Split(section, " ")
+	words := Words(section)
+	num := Number(section)
 
-	words := []string{}
-	nums := []string{}
-	for _, seg := range segs {
-		if strings.ContainsAny(seg, "0123456789") {
-			nums = append(nums, seg)
-		} else {
-			words = append(words, seg)
-		}
-	}
-
-	for idx, num := range nums {
-		prefix := Prefix(num)
-		suffix := Suffix(num)
-		stripped := strings.TrimSuffix(strings.TrimPrefix(num, prefix), suffix)
-		expanded := Expand(suffix)
-		if expanded != "" {
-			nums[idx] = expanded + " " + stripped
-		} else {
-			nums[idx] = stripped
-		}
-	}
-
-	for idx, word := range words {
-		expanded := Expand(word)
-		words[idx] = expanded
-	}
-
-	for idx, word := range words {
-		capitalized := Capitalize(word)
-		words[idx] = capitalized
-	}
+	words = Expand(words)
+	words = Capitalize(words)
 
 	words = Exchange(words)
 	words = Eliminate(words)
 
-	// row := Capitalize(row)
-	// t.Row = &row
-
-	result := strings.Join(append(words, nums...), " ")
+	result := strings.Join(append(words, num), " ")
 
 	result = Complete(result)
 
 	perms := Shorten(result)
 	for _, perm := range perms {
 		if sec, ok := m.Sections[perm]; ok {
-			result := Lock(sec, row)
+			row := capitalize(*row)
+			result := Lock(sec, &row)
 			return result.Section, result.Row, result.Valid
 		}
 	}
@@ -147,6 +117,118 @@ func (m *Manifest) Normalize(section string, row *string) (*int, *int, bool) {
 	// No Match
 	return nil, nil, false
 
+}
+
+func Words(phrase string) []string {
+	re := regexp.MustCompile("[^a-zA-Z ]")
+	phrase = re.ReplaceAllString(phrase, " ")
+
+	words := strings.Split(phrase, " ")
+	for i := len(words) - 1; i >= 0; i-- {
+		if words[i] == "" {
+			words = append(words[:i], words[i+1:]...)
+		}
+	}
+
+	return words
+}
+
+func Number(phrase string) string {
+	re := regexp.MustCompile("[^0-9]")
+	return re.ReplaceAllString(phrase, "")
+}
+
+func Expand(words []string) []string {
+	results := []string{}
+	for _, word := range words {
+		switch word {
+		case "BL":
+			results = append(results, "Baseline")
+			results = append(results, "Club")
+		case "FD":
+			results = append(results, "Field")
+			results = append(results, "Box")
+		case "TD":
+			results = append(results, "Top")
+			results = append(results, "Deck")
+		case "RS":
+			results = append(results, "Reserve")
+		case "LG":
+			results = append(results, "Loge")
+			results = append(results, "Box")
+		case "DG":
+			results = append(results, "Dugout")
+			results = append(results, "Club")
+		case "PR":
+			results = append(results, "Right")
+			results = append(results, "Field")
+			results = append(results, "Pavilion")
+		default:
+			results = append(results, word)
+		}
+	}
+
+	return results
+}
+
+func Capitalize(words []string) []string {
+	for idx, word := range words {
+		words[idx] = capitalize(word)
+	}
+
+	return words
+}
+
+func capitalize(word string) string {
+	lower := strings.ToLower(word)
+	first := strings.SplitN(lower, "", 2)[0]
+	return strings.ToUpper(first) + lower[1:]
+}
+
+func Exchange(words []string) []string {
+	for idx, word := range words {
+		switch word {
+		case "Infield":
+			words[idx] = "Field"
+		}
+	}
+	return words
+}
+
+func Eliminate(words []string) []string {
+	results := []string{}
+	for _, word := range words {
+		switch word {
+		case "Reserve":
+			results = append(results, word)
+		case "Field":
+			results = append(results, word)
+		case "Box":
+			results = append(results, word)
+		case "Field Box":
+			results = append(results, word)
+		case "Top":
+			results = append(results, word)
+		case "Deck":
+			results = append(results, word)
+		case "Loge":
+			results = append(results, word)
+		case "Right":
+			results = append(results, word)
+		case "Left":
+			results = append(results, word)
+		case "Pavilion":
+			results = append(results, word)
+		case "Dugout":
+			results = append(results, word)
+		case "Club":
+			results = append(results, word)
+		case "Baseline":
+			results = append(results, word)
+		}
+	}
+
+	return results
 }
 
 func Lock(sec *Section, row *string) *Output {
@@ -185,89 +267,6 @@ func Shorten(phrase string) []string {
 	return results
 }
 
-func Suffix(num string) string {
-	chars := strings.Split(num, "")
-	for idx, char := range chars {
-		if !strings.ContainsAny(char, "0123456789") {
-			return num[idx:]
-		}
-	}
-
-	return ""
-}
-
-func Prefix(num string) string {
-	chars := strings.Split(num, "")
-	for idx, char := range chars {
-		if strings.ContainsAny(char, "0123456789") {
-			return num[:idx]
-		}
-	}
-	return ""
-}
-
-func Capitalize(phrase string) string {
-	words := strings.Split(phrase, " ")
-	for idx, word := range words {
-		lower := strings.ToLower(word)
-		first := strings.SplitN(lower, "", 2)[0]
-		words[idx] = strings.ToUpper(first) + lower[1:]
-	}
-
-	return strings.Join(words, " ")
-}
-
-func Eliminate(words []string) []string {
-	results := []string{}
-	for _, word := range words {
-		switch word {
-		case "Reserve":
-			results = append(results, word)
-		case "Field":
-			results = append(results, word)
-		case "Box":
-			results = append(results, word)
-		case "Field Box":
-			results = append(results, word)
-		case "Top":
-			results = append(results, word)
-		case "Deck":
-			results = append(results, word)
-		case "Loge":
-			results = append(results, word)
-		case "Right":
-			results = append(results, word)
-		case "Left":
-			results = append(results, word)
-		case "Pavilion":
-			results = append(results, word)
-		}
-	}
-
-	return results
-}
-
-func Expand(suffix string) string {
-	switch suffix {
-	case "BL":
-		return "Baseline Club"
-	case "FD":
-		return "Field Box"
-	case "TD":
-		return "Top Deck"
-	case "RS":
-		return "Reserve"
-	case "LG":
-		return "Loge Box"
-	case "DG":
-		return "Dugout Club"
-	case "PR":
-		return "Right Field Pavilion"
-	}
-
-	return suffix
-}
-
 func Complete(phrase string) string {
 	if strings.Contains(phrase, "Loge") && !strings.Contains(phrase, "Loge Box") {
 		phrase = strings.Replace(phrase, "Loge", "Loge Box", 1)
@@ -278,17 +277,4 @@ func Complete(phrase string) string {
 	}
 
 	return phrase
-}
-
-func Exchange(words []string) []string {
-	results := make([]string, len(words))
-	for idx, word := range words {
-		switch word {
-		case "Infield":
-			results[idx] = "Field"
-		default:
-			results[idx] = word
-		}
-	}
-	return results
 }
